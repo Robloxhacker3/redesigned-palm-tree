@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Private Script Marketplace</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Private Script Marketplace</h1>
+  </header>
+  <main class="main">
+    <section class="search">
+      <input id="q" placeholder="Search scripts (private)..." />
+      <button id="go">Search</button>
+      <button id="recent">Recent</button>
+    </section>
+    <section id="results" class="results"></section>
+  </main>
+
+  <footer class="footer">
+    <small>Bot VPS: fi7.bot-hosting.net:21253 — Private uploads only</small>
+  </footer>
+
+  <script>
+    async function showResults(arr) {
+      const container = document.getElementById('results');
+      if (!arr || arr.length === 0) {
+        container.innerHTML = '<p class="no">No results.</p>';
+        return;
+      }
+      container.innerHTML = arr.map(s => `
+        <div class="card">
+          <img src="${s.image || 'https://via.placeholder.com/512x256'}" />
+          <div class="meta">
+            <h2>${s.name}</h2>
+            <p class="desc">${s.description || ''}</p>
+            <p class="fields"><strong>Game:</strong> <a href="${s.game_link}" target="_blank">${s.game_link}</a></p>
+            <p class="fields"><strong>Key System:</strong> ${s.has_key ? '✅ true' : '❌ false'}</p>
+            <pre class="code">${s.code ? (s.code.length>400? s.code.substring(0,400)+'...': s.code) : ''}</pre>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('go').addEventListener('click', async ()=>{
+      const q = document.getElementById('q').value.trim();
+      if (!q) return alert('Enter a query');
+      try {
+        const res = await fetch(`/api/search?query=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        showResults(json);
+      } catch(e) { alert('Error: '+e.message); }
+    });
+
+    document.getElementById('recent').addEventListener('click', async ()=>{
+      try {
+        const res = await fetch('/api/recent?limit=6');
+        const json = await res.json();
+        showResults(json);
+      } catch(e) { alert('Error: '+e.message); }
+    });
+  </script>
+</body>
+</html>
